@@ -108,17 +108,8 @@ namespace ShipyardLib
             //3) Scale the mesh to match distance
             Vector3 scale = originalScale;
             scale.z = distance / originalDistance;
-            Vector3[] newVerts = new Vector3[originalVertices.Length];
-            for (int i = 0; i < newVerts.Length; i++)
-            {
-                Vector3 v = originalVertices[i];
-                v.z *= scale.z;
-                newVerts[i] = v;
-            }
-            mesh.vertices = newVerts;
-            mesh.RecalculateBounds();
-            mesh.RecalculateNormals();
-
+            ShipyardHelpers.ScaleMesh(mesh, originalVertices, scale.z);
+            
             //4) Offset to match mesh offset
             float offset = originalOffset * scale.z;
             t.position += t.forward * offset;
@@ -139,12 +130,12 @@ namespace ShipyardLib
 
                 //capsule collider fix
                 float capsuleHeight = originalCapsuleHeight * scale.z;
-                capsule.direction = 2;
+                //capsule.direction = 2;
                 capsule.radius = radius;
                 capsule.height = capsuleHeight;
-                capsule.center = new Vector3(0f, 0f, -(mastHeight / 2f));   //debug: this might have to be adjusted
-                mast.mastCols = new CapsuleCollider[1]; //this currently does not support having shrouds colliders
-                mast.mastCols[0] = capsule;
+                //capsule.center = new Vector3(0f, 0f, -(mastHeight / 2f));   //debug: this might have to be adjusted
+                //mast.mastCols = new CapsuleCollider[1]; //this currently does not support having shrouds colliders
+                //mast.mastCols[0] = capsule;
 
                 foreach (Sail s in sails)
                 {
@@ -196,21 +187,20 @@ namespace ShipyardLib
             float scale =  mast.mastHeight / previousMastHeight;
             float distance = targetHeight - currentHeight;
 
-            Debug.LogWarning("current: " + currentHeight + " scale: " + scale + " target: " + targetHeight + " distance: " + distance);
-
             if (distance > 0f && currentHeight + distance > mast.mastHeight + 0.1f)
-            {
+            {   //upper limit
                 distance = mast.mastHeight - currentHeight;
             }
             if (distance < 0f && currentHeight + distance - s.installHeight < -0.1f)
-            {
+            {   //lower limit
                 distance = s.installHeight - currentHeight;
             }
 
+            //apply changes
             s.ChangeInstallHeight(distance);
             s.UpdateInstallPosition();
 
-            //update everyrhing
+            //update everything
             mast.UpdateSailOrder();
             mast.UpdateControllerAttachments();
 

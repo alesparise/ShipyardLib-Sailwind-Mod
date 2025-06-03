@@ -88,5 +88,20 @@ namespace ShipyardLib
             Y = 1,
             Z = 2,
         }
+
+        //DynamicPart helpers:
+        public static void ScaleMesh(Mesh mesh, Vector3[] originalVertices, float scale)
+        {
+            Vector3[] newVerts = new Vector3[originalVertices.Length];
+            for (int i = 0; i < newVerts.Length; i++)
+            {
+                Vector3 v = originalVertices[i];
+                v.z *= scale;
+                newVerts[i] = v;
+            }
+            mesh.vertices = newVerts;
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
+        }
     }
 }
