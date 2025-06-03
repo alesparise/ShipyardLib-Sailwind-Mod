@@ -4,12 +4,26 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShipyardLib
-{
+{   /// <summary>
+    /// Scales a part between a start and an end point, as the points move.
+    /// This makes some assumptions:
+    /// 1) the part is scaled along the (local) z axis (forward, blue arrow in the editor)
+    /// 2) the two points are not children of the part (although actually it might work regardless?)
+    /// 3) The part is a Mast or BoatPartOption. This might be better be changed in the future?
+    /// 4) The part sharedMesh is the same as the walkCol corresponding part (we scale the sharedMesh, which affects both)
+    /// Known Issues:
+    /// 1) Currently if you are scaling a Mast it doesn't change the extra bottom height, which might be relevant
+    /// 
+    /// Usage:
+    /// This is mostly meant to scale stays, but hopefully should work with shrouds too, if they are set up correctly,
+    /// or at least should only need minor changes.
+    /// Attach this Component to the part you want to make dynamic in unity, assign the end and start points
+    /// That should be it. Now if one point moves (for whatever reason) the part should adjust itself accordingly.
+    /// </summary>
     public class DynamicPart : MonoBehaviour
     {
         private Transform t;
         private Transform walkCol;
-        private Transform[] keepStill;
         public Transform start;  //point one. This is where the dynamic object start
         public Transform end;    //point two. This is where the dynamic object ends.
 
@@ -24,18 +38,22 @@ namespace ShipyardLib
         private List<Sail> sails;
         
         private Vector3 originalScale;
-        private Vector3 lastPos;
+        private Vector3 lastStartPos;
+        private Vector3 lastEndPos;
         private Vector3[] originalVertices;
         
         private float originalDistance;
         private float originalOffset;
+        private float originalRadius;
+        private float originalCapsuleHeight;
+        private float originalMastHeight;
+        private float previousMastHeight;
 
         private bool isMast;
         
         public void Awake()
         {
             t = transform;
-            int num = t.childCount;
 
             //get mesh so we can change the mesh scale instead of the transform scale
             //this allow the attached sail and all children to keep their original scale
@@ -56,21 +74,20 @@ namespace ShipyardLib
                 isMast = true;
                 capsule = GetComponent<CapsuleCollider>();
                 walkCol = mast.walkColMast;
+                originalRadius = capsule.radius;
+                originalCapsuleHeight = capsule.height;
+                originalMastHeight = mast.mastHeight;
             }
             else
             {
                 walkCol = GetComponent<BoatPartOption>().walkColObject.transform;
             }
-            
         }
         public void Update()
         {
-            if (GameState.currentShipyard == null || lastPos == end.position) return;
+            if (GameState.currentShipyard == null || (lastEndPos == end.position && lastStartPos == start.position)) return;
 
-            PreserveChildrenWhileMoving(t, () =>
-            {
-                Connect(); // Your transform/rotation/scaling logic
-            });
+            KeepChildrenStill(t, Connect);
         }
         public void Connect()
         {   //moves, rotates and scales the object so that it "connects" the two attachments
@@ -113,35 +130,38 @@ namespace ShipyardLib
             //6) if this is a mast, adjust mast height and capsule collider
             if (isMast)
             {
-                Bounds bounds = GetComponent<MeshFilter>().sharedMesh.bounds;
-                Vector3 extents = bounds.extents;
-                float radius = extents.x;
-                float maxHeight = (float)Math.Round(extents.z * 2f - (extents.z + bounds.center.z), 2);
+                //mast fix
+                float radius = originalRadius * scale.z;
+                float mastHeight = originalMastHeight * scale.z;
 
-                float mastHeight = name.Contains("stay") ? (float)Math.Round(0.75f * maxHeight, 2) : (float)Math.Round(maxHeight, 2);
+                previousMastHeight = mast.mastHeight;
+                mast.mastHeight = mastHeight;
 
+                //capsule collider fix
+                float capsuleHeight = originalCapsuleHeight * scale.z;
                 capsule.direction = 2;
-                capsule.radius = radius * 1.4f;  //keeping a bit of margin to avoid sails clipping
-                capsule.height = mastHeight + 2f;
-                capsule.center = new Vector3(0f, 0f, -(mastHeight / 2f));
-                mast.mastCols = new CapsuleCollider[1];
+                capsule.radius = radius;
+                capsule.height = capsuleHeight;
+                capsule.center = new Vector3(0f, 0f, -(mastHeight / 2f));   //debug: this might have to be adjusted
+                mast.mastCols = new CapsuleCollider[1]; //this currently does not support having shrouds colliders
                 mast.mastCols[0] = capsule;
 
                 foreach (Sail s in sails)
                 {
-                    UpdateSail(s);
+                    if (s != null) UpdateSail(s);
                 }
             }
 
-            lastPos = endPos;
-            Debug.LogWarning("Reached end of Connect...");
+            //7) Store last end and start position so we can use them to check if Connect should be called
+            lastEndPos = endPos;
+            lastStartPos = startPos;
         }
-        private void PreserveChildrenWhileMoving(Transform parent, Action doTransformChange)
-        {
+        private void KeepChildrenStill(Transform parent, Action doTransformChange)
+        {   //Make sure the children object of the Dynamic Part don't get moved around
             List<Transform> children = new List<Transform>();
             List<Sail> ss = new List<Sail>();
 
-            // 1) Cache world positions and rotations
+            //1) Cache world positions and rotations
             foreach (Transform child in parent)
             {
                 Sail s = child.GetComponent<Sail>();
@@ -156,10 +176,11 @@ namespace ShipyardLib
             List<Vector3> childPositions = children.Select(c => c.position).ToList();
             List<Quaternion> childRotations = children.Select(c => c.rotation).ToList();
 
-            // 2) Perform transformation
+            sails = ss;
+            //2) Perform transformation
             doTransformChange();
 
-            // 3) Restore world transforms
+            //3) Restore world transforms
             for (int i = 0; i < children.Count; i++)
             {
                 children[i].position = childPositions[i];
@@ -167,16 +188,25 @@ namespace ShipyardLib
             }
         }
         private void UpdateSail(Sail s)
-        {
-            //make sure the sail is in the allowed range of install positions
-            //ShipyardSailInstaller.MoveHeldSail()
+        {   //make sure the sail is in the allowed range of install positions
 
-            float distance = 0f;
             float currentHeight = s.GetCurrentInstallHeight();
-            if (currentHeight < s.installHeight)
+            float t = Mathf.InverseLerp(s.installHeight, previousMastHeight, currentHeight);    //get at what point on the mast the sail was
+            float targetHeight = Mathf.Lerp(s.installHeight, mast.mastHeight, t);               //get at what point on the mast the sail should be now
+            float scale =  mast.mastHeight / previousMastHeight;
+            float distance = targetHeight - currentHeight;
+
+            Debug.LogWarning("current: " + currentHeight + " scale: " + scale + " target: " + targetHeight + " distance: " + distance);
+
+            if (distance > 0f && currentHeight + distance > mast.mastHeight + 0.1f)
+            {
+                distance = mast.mastHeight - currentHeight;
+            }
+            if (distance < 0f && currentHeight + distance - s.installHeight < -0.1f)
             {
                 distance = s.installHeight - currentHeight;
             }
+
             s.ChangeInstallHeight(distance);
             s.UpdateInstallPosition();
 
