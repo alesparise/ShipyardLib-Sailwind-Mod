@@ -18,8 +18,7 @@ namespace ShipyardLib
         public void Start()
         {
             t = transform;
-            slider = modUI.attachmentSlider1;
-            //slider.Value = Mathf.InverseLerp(min, max, (t.localPosition.magnitude * GetAxis(axis)).magnitude);
+            slider = customUI.slider1;
             slider.OnValueChanged += UpdatePos;
         }
         private void UpdatePos(float value)

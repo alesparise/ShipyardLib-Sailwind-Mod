@@ -38,7 +38,7 @@ namespace ShipyardLib
         //vanilla
         //sail
         masts = 0,
-        other = 1,  //might be renamed to shrouds?
+        other = 1,
         stays = 2,
         //modded
         structures = 3,
@@ -46,6 +46,5 @@ namespace ShipyardLib
         shrouds = 5,
         color = 6,
         engines = 7,
-
     }
 }

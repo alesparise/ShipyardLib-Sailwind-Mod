@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Reflection;
+using UnityEngine;
 
 namespace ShipyardLib
 {
@@ -27,9 +28,9 @@ namespace ShipyardLib
         public static void Setup() => ShipyardHelpers.Setup();
         public static void EnableCustomShipyard(bool state, Shipyard __instance)
         {
-            if (__instance.GetCurrentBoat()?.GetComponent<CustomShipyard>() == null) return;
-
-            ShipyardHelpers.EnableUI();
+            if (state && __instance.GetCurrentBoat()?.GetComponent<CustomShipyard>() == null) return;
+            Debug.LogWarning("Toggling moddedUI");
+            ShipyardHelpers.ToggleUI(state);
         }
     }
 }

@@ -11,10 +11,11 @@ namespace ShipyardLib
         
         //Prefabs
         public static GameObject slider;
+        public static GameObject UIPrefab;
 
         //References
         public static Transform baseUI;
-        public static CustomShipyardUI modUI;
+        public static CustomUI customUI;
 
         public static void Setup()
         {
@@ -31,28 +32,33 @@ namespace ShipyardLib
             //load prefabs
             string sliderPath = "Assets/ShipyardLib/shipyard_slider.prefab";
             slider = bundle.LoadAsset<GameObject>(sliderPath);
+            string customUIPath = "Assets/ShipyardLib/CustomUI.prefab";
+            UIPrefab  = bundle.LoadAsset<GameObject>(customUIPath); 
 
             //find vanilla UI
-            baseUI = GameObject.Find("shipyard UI").transform.Find("UI");
+            baseUI = ShipyardUI.instance?.transform.Find("UI");
+            if (baseUI == null) Debug.LogError("ShipyardUI not found during setup!");
 
             //Prepare the UI
-            modUI = new GameObject("custom_shipyard_ui").AddComponent<CustomShipyardUI>();
-            Transform modUITransform = modUI.transform;
-            modUITransform.SetParent(baseUI);
-            modUITransform.localPosition = Vector3.zero;
-            modUITransform.localRotation = Quaternion.identity;
+            customUI = Object.Instantiate(UIPrefab, baseUI).AddComponent<CustomUI>();
+            customUI.name = "CustomUI";
+            Transform customUITra = customUI.transform;
+            customUITra.localPosition = Vector3.zero;
+            customUITra.localRotation = Quaternion.identity;
 
             //debug slider:
-            GameObject s = Object.Instantiate(slider, modUITransform);
-            modUI.attachmentSlider1 = s.GetComponent<Slider>();
+            GameObject s = Object.Instantiate(slider, customUITra);
+            s.transform.localPosition = Vector3.up * 5f;
+            customUI.slider1 = s.GetComponent<Slider>();
 
             Debug.LogWarning("ShipyardLib: Setup done!");
         }
 
         //HELPER METHODS
-        public static void EnableUI()
+        public static void ToggleUI(bool state)
         {
-            
+            IsWideUi();
+            customUI.enabled = state;
         }
 
         //Vector3 stuff:
@@ -102,6 +108,18 @@ namespace ShipyardLib
             mesh.vertices = newVerts;
             mesh.RecalculateBounds();
             mesh.RecalculateNormals();
+        }
+
+        //Various helpers
+        public static bool IsWideUi()
+        {
+            float exitButtonX = baseUI.Find("shipyard ui button exit").localPosition.x;
+            if (exitButtonX < -11)
+            {
+                Debug.LogWarning("UI is wide (Nand tweaked)");
+                return true;
+            }
+            else return false;
         }
     }
 }
