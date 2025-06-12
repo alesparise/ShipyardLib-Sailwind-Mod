@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System;
 using System.Reflection;
 using UnityEngine;
 
@@ -24,13 +25,56 @@ namespace ShipyardLib
             MethodInfo shipCheckOG = AccessTools.Method(typeof(Shipyard), "ToggleMenu");
             MethodInfo shipCheckP = AccessTools.Method(typeof(ShipyardLibPatches), "EnableCustomShipyard");
             harmony.Patch(shipCheckOG, new HarmonyMethod(shipCheckP));
+
+            //vanilla category button patches
+            MethodInfo buttonOG = AccessTools.Method(typeof(ShipyardButton), "OnActivate");
+            MethodInfo buttonP = AccessTools.Method(typeof(ShipyardLibPatches), "CloseModdedPanels");
+            harmony.Patch(buttonOG, new HarmonyMethod(buttonP));
+
+            //patching ShipyardExpansion
+            //this is pretty janky, but it works without adding the reference to Shipyard Expansion!
+            string typeName = "ShipyardExpansion.ShipyardUIPatches";
+
+            Assembly seAssembly;
+            Type t = null;
+            foreach (Assembly ass in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                t = ass.GetType(typeName);
+                if (t != null)
+                {
+                    seAssembly = ass;
+                    Debug.LogWarning("Found SE!");
+                    break;
+                }
+            }
+            if (t != null)
+            {   //only run this if the correct type is found
+                MethodInfo seOG = AccessTools.Method(t, "RefreshPatch");
+                MethodInfo seP = AccessTools.Method(typeof(ShipyardLibPatches), "SEPatch");
+                harmony.Patch(seOG, new HarmonyMethod(seP));
+            }
         }
         public static void Setup() => ShipyardHelpers.Setup();
         public static void EnableCustomShipyard(bool state, Shipyard __instance)
+        {   //runs the check to see if the modded ui is to be enabled
+            CustomShipyard cs = __instance.GetCurrentBoat()?.GetComponent<CustomShipyard>();
+            if (state && cs == null) return;
+            Debug.LogWarning("Toggling moddedUI for " + cs.name);
+            ShipyardHelpers.ToggleUI(state, cs);
+        }
+        public static void CloseModdedPanels(ShipyardButton __instance)
+        {   //patch ShipyardButton so that we can close all modded panels when clicking a vanilla category
+            if (__instance.function == ShipyardButton.ButtonFunction.changeCategory)
+            {
+                CustomUI.instance.CloseAllPanels();
+            }
+        }
+        public static bool SEPatch()
         {
-            if (state && __instance.GetCurrentBoat()?.GetComponent<CustomShipyard>() == null) return;
-            Debug.LogWarning("Toggling moddedUI");
-            ShipyardHelpers.ToggleUI(state);
+            CustomShipyard cs = GameState.currentShipyard.GetCurrentBoat().GetComponent<CustomShipyard>();
+            if (cs != null) return false;
+            Debug.LogWarning("Patching SE");
+            return true;
         }
     }
 }

@@ -69,6 +69,8 @@
   <ItemGroup>
     <Compile Include="Bridge.cs" />
     <Compile Include="CatButton.cs" />
+    <Compile Include="ColorButton.cs" />
+    <Compile Include="Colorizer.cs" />
     <Compile Include="CursorButton.cs" />
     <Compile Include="CustomShipyard.cs" />
     <Compile Include="DynamicAttachment.cs" />
@@ -76,6 +78,8 @@
     <Compile Include="CustomUI.cs" />
     <Compile Include="ObjectMover.cs" />
     <Compile Include="ObjectToggler.cs" />
+    <Compile Include="MaterialButton.cs" />
+    <Compile Include="ResetColorButton.cs" />
     <Compile Include="ShipyardHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShipyardLibPatches.cs" />

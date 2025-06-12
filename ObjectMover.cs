@@ -27,21 +27,31 @@ namespace ShipyardLib
             }
         }
         public void OnEnable()
-        {
+        {   //move to new position
             for (int i = 0; i < moveWhenEnabled.Length; i++)
             {
-                
+                Transform t = moveWhenEnabled[i];
+                t.localPosition = finalPos[i];
+                t.localEulerAngles = finalRot[i];
             }
         }
         public void OnDisable()
-        {
-
+        {   //restore original position
+            for (int i = 0; i < moveWhenEnabled.Length; i++)
+            {
+                Transform t = moveWhenEnabled[i];
+                t.localPosition = startPos[i];
+                t.localEulerAngles = startRot[i];
+            }
         }
 
+        //EDITOR
         public void OnDrawGizmosSelected()
-        {
+        {   //draw gizmos to the final positions when selected
             for (int i = 0; i < moveWhenEnabled.Length;i++)
             {
+                if (moveWhenEnabled[i] ==  null) continue;
+
                 Transform t = moveWhenEnabled[i]?.transform;
                 if (t == null) continue;
 
@@ -53,7 +63,7 @@ namespace ShipyardLib
                 Vector3 worldPos = parent != null ? parent.TransformPoint(finalPos[i]) : finalPos[i];
                 Quaternion worldRot = parent != null ? parent.rotation * Quaternion.Euler(finalRot[i]) : Quaternion.Euler(finalRot[i]);
 
-                Vector3 scale = t.lossyScale; // Keep the scale as-is (world scale)
+                Vector3 scale = t.lossyScale;
 
                 Gizmos.color = Color.green;
                 Gizmos.matrix = Matrix4x4.TRS(worldPos, worldRot, scale);

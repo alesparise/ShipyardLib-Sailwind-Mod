@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
+using static ShipyardLib.ShipyardHelpers;
+
 namespace ShipyardLib
 {   /// <summary>
     /// Scales a part between a start and an end point, as the points move.
@@ -85,8 +87,9 @@ namespace ShipyardLib
         }
         public void Update()
         {
-            if (GameState.currentShipyard == null || (lastEndPos == end.position && lastStartPos == start.position)) return;
-
+            if (GameState.currentShipyard == null) return;
+            if (TolerantCompare(lastEndPos, end.position) && TolerantCompare(lastStartPos, start.position)) return;
+            
             KeepChildrenStill(t, Connect);
         }
         public void Connect()
@@ -108,7 +111,7 @@ namespace ShipyardLib
             //3) Scale the mesh to match distance
             Vector3 scale = originalScale;
             scale.z = distance / originalDistance;
-            ShipyardHelpers.ScaleMesh(mesh, originalVertices, scale.z);
+            ScaleMesh(mesh, originalVertices, scale.z);
             
             //4) Offset to match mesh offset
             float offset = originalOffset * scale.z;

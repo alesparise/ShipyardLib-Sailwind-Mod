@@ -40,11 +40,16 @@ namespace ShipyardLib
             if (baseUI == null) Debug.LogError("ShipyardUI not found during setup!");
 
             //Prepare the UI
-            customUI = Object.Instantiate(UIPrefab, baseUI).AddComponent<CustomUI>();
+            Debug.LogWarning("Instantiate Custom UI");
+            Transform shifting = GameObject.Find("_shifting world").transform;
+
+            customUI = Object.Instantiate(UIPrefab, shifting).GetComponent<CustomUI>();
             customUI.name = "CustomUI";
             Transform customUITra = customUI.transform;
+            customUITra.parent = baseUI;
             customUITra.localPosition = Vector3.zero;
             customUITra.localRotation = Quaternion.identity;
+            customUITra.localScale = Vector3.one;
 
             //debug slider:
             GameObject s = Object.Instantiate(slider, customUITra);
@@ -55,10 +60,10 @@ namespace ShipyardLib
         }
 
         //HELPER METHODS
-        public static void ToggleUI(bool state)
+        public static void ToggleUI(bool state, CustomShipyard cs)
         {
-            IsWideUi();
-            customUI.enabled = state;
+            if (!state) return; //do nothing if we are closing the ui
+            customUI.OpenCustomUI(IsWideUi(), cs);
         }
 
         //Vector3 stuff:
@@ -83,10 +88,28 @@ namespace ShipyardLib
             return Clamp(v, -limit, limit, a);
         }
         public static Vector3 GetAxis(Axis a)
-        {
+        {   //Axis to Vector3 direction
             if (a == Axis.X) return Vector3.right;
             else if (a == Axis.Y) return Vector3.up;
             else return Vector3.forward; //if (a == Axis.Z)
+        }
+        public static bool AreClose(Vector3 v1, Vector3 v2)
+        {   //returns true if two vectors are "close enough", avoiding floating point errors like direcly comparing them
+            float tol = 0.001f;
+            tol *= tol; //square it
+
+            return Vector3.SqrMagnitude(v1 - v2) < tol;
+        }
+        public static bool TolerantCompare(Vector3 v1, Vector3 v2)
+        {   //compare two vectors in a looser way than the == operator
+            float tol = 0.01f;  //tolerance
+
+            float dx = Mathf.Abs(v1.x - v2.x);
+            float dy = Mathf.Abs(v1.y - v2.y);
+            float dz = Mathf.Abs(v1.z - v2.z);
+
+            if (dx > tol || dy > tol || dz > tol) return false;   //not the same position
+            else return true;   //more or less the same position
         }
         public enum Axis
         {   //helper for storing axis
@@ -116,7 +139,6 @@ namespace ShipyardLib
             float exitButtonX = baseUI.Find("shipyard ui button exit").localPosition.x;
             if (exitButtonX < -11)
             {
-                Debug.LogWarning("UI is wide (Nand tweaked)");
                 return true;
             }
             else return false;
