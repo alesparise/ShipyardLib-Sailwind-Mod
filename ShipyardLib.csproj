@@ -71,6 +71,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomOrder.cs" />
     <Compile Include="Scripts\Bridge.cs" />
     <Compile Include="CatButton.cs" />
     <Compile Include="Coloring\ColorButton.cs" />

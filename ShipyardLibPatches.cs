@@ -65,6 +65,11 @@ namespace ShipyardLib
             MethodInfo loadOG = AccessTools.Method(typeof(SaveLoadManager), "LoadModData");
             MethodInfo loadP = AccessTools.Method(typeof(SaveLoader), "LoadCustomShipyard");
             harmony.Patch(loadOG, new HarmonyMethod(loadP));
+
+            //Update order in the shipyard for color system
+            MethodInfo orderOG = AccessTools.Method(typeof(Shipyard), "UpdateOrder");
+            MethodInfo orderP = AccessTools.Method(typeof(ShipyardLibPatches), "AddCustomOrder");
+            harmony.Patch(orderOG, null, new HarmonyMethod(orderP));
         }
         public static void Setup() => ShipyardHelpers.Setup();
         public static void EnableCustomShipyard(bool state, Shipyard __instance)
@@ -88,6 +93,13 @@ namespace ShipyardLib
             if (cs != null) return false;
             Debug.LogWarning("Patching SE");
             return true;
+        }
+        public static void AddCustomOrder(Shipyard __instance,  ref int ___currentOrderTotal)
+        {
+            CustomOrder order = CustomUI.instance.customOrder;
+            ___currentOrderTotal += order.AddTotal();
+            order.AppendOrder();
+            order.UpdateTotalLine(___currentOrderTotal, __instance.region);
         }
     }
 }

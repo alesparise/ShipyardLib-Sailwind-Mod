@@ -38,6 +38,7 @@ namespace ShipyardLib
         [HideInInspector] public ColorGroup target;
 
         public static CustomUI instance;
+        public CustomOrder customOrder;
 
         private Vector3[] widePos = {           //stores the position to use if the UI is wide (NAND Tweaks)
             new Vector3(13.2f, 5.95f, 9.9f),    //slider panel
@@ -154,6 +155,7 @@ namespace ShipyardLib
             standardPos[2] = selectionPanel.transform.localPosition;
 
             instance = this;
+            customOrder = gameObject.AddComponent<CustomOrder>();
         }
         public void CloseVanillaUI()
         {   //close vanilla UI parts we don't need

@@ -28,8 +28,6 @@ namespace ShipyardLib
         }
         public override void OnActivate()
         {
-            Debug.LogWarning("CatButton clicked, category: " + label.text);
-
             customUI.CloseVanillaUI();
             if (type == ButtonType.Parts)
             {
