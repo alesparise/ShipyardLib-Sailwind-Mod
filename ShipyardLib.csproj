@@ -71,19 +71,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bridge.cs" />
+    <Compile Include="Scripts\Bridge.cs" />
     <Compile Include="CatButton.cs" />
-    <Compile Include="ColorButton.cs" />
-    <Compile Include="Colorizer.cs" />
+    <Compile Include="Coloring\ColorButton.cs" />
+    <Compile Include="Coloring\Colorizer.cs" />
     <Compile Include="CursorButton.cs" />
     <Compile Include="CustomShipyard.cs" />
-    <Compile Include="DynamicAttachment.cs" />
-    <Compile Include="DynamicPart.cs" />
+    <Compile Include="Scripts\DynamicAttachment.cs" />
+    <Compile Include="Scripts\DynamicPart.cs" />
     <Compile Include="CustomUI.cs" />
-    <Compile Include="ObjectMover.cs" />
-    <Compile Include="ObjectToggler.cs" />
-    <Compile Include="MaterialButton.cs" />
-    <Compile Include="ResetColorButton.cs" />
+    <Compile Include="Scripts\ObjectMover.cs" />
+    <Compile Include="Scripts\ObjectToggler.cs" />
+    <Compile Include="Coloring\MaterialButton.cs" />
+    <Compile Include="Coloring\ResetColorButton.cs" />
     <Compile Include="SaveLoader.cs" />
     <Compile Include="ShipyardHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

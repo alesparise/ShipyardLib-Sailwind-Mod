@@ -7,13 +7,14 @@ namespace ShipyardLib
         private Color color;
         public override void OnActivate()
         {
-            Debug.LogWarning("Clicked color: " + color);
-
+            //apply color to the correct group
             ColorGroup target = CustomUI.instance.target;
             if (target == null) return;
             if (target.material != null) CustomUI.instance.colorizer.Colorize(color, target.material);
             if (target.objects != null && target.objects.Length > 0) CustomUI.instance.colorizer.Colorize(color, target.objects);
-            target.currentColor = color;
+            CustomUI.instance.customShipyard.colorGroups[target.index].currentColor = color;
+
+            //add paintjob to the shipyard order
         }
 
         public void SetColor(Color c)

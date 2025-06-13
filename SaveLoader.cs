@@ -8,36 +8,29 @@ namespace ShipyardLib
     {
         public static List<CustomShipyard> customShipyards;
 
+        public const string colorKeyPrefix = ShipyardLibPatches.shortName + ".color.";
+
         public static void SaveCustomShipyard()
         {   //patch to save mod data
             foreach (CustomShipyard cs in customShipyards)
             {
-                //store data
-                SaveData saveData = new SaveData(cs.colorGroups, cs.boatIndex);
                 //create key
-                string key = ShipyardLibPatches.shortName + "." + cs.boatIndex;
+                string key = colorKeyPrefix + cs.boatIndex;
                 //serialize data
-                GameState.modData[key] = JsonUtility.ToJson(saveData);
-
-                Debug.LogWarning("ShipyardLib: saved data for " + cs.boatIndex);
+                string serialized = SerializeColorGroupArray(cs.colorGroups);
+                GameState.modData[key] = serialized;
             }
         }
         public static void LoadCustomShipyard()
         {   //patch to load mod data
-
-            string prefix = ShipyardLibPatches.shortName + ".";
-
             foreach (var kvp in GameState.modData)
             {
-                if (kvp.Key.StartsWith(prefix))
+                if (kvp.Key.StartsWith(colorKeyPrefix))
                 {
-                    Debug.LogWarning("found a shipyardLib key: " + kvp.Key);
-                    Debug.LogWarning("value is: " + kvp.Value);
-
                     //deserialize
-                    string boatIndexStr = kvp.Key.Substring(prefix.Length);
+                    string boatIndexStr = kvp.Key.Substring(colorKeyPrefix.Length);
                     int index = int.Parse(boatIndexStr);
-                    SaveData data = JsonUtility.FromJson<SaveData>(kvp.Value);
+                    ColorGroup[] colorGroups = DeserializeColorGroupArray(kvp.Value);
 
                     //find the right boat
                     CustomShipyard[] css = GameObject.FindObjectsOfType<CustomShipyard>();
@@ -49,7 +42,7 @@ namespace ShipyardLib
                     if (rightBoat == null) return;  //No boat found with the right thing
 
                     //assign modded data to the boat
-                    rightBoat.colorGroups = data.colorGroups;
+                    rightBoat.colorGroups = colorGroups;
                     foreach (ColorGroup cg in rightBoat.colorGroups)
                     {   //apply saved colors
                         Color color = cg.currentColor;
@@ -60,20 +53,33 @@ namespace ShipyardLib
                     }
                 }
             }
-            Debug.LogWarning("ShipyardLib: loaded data!");
         }
-    }
-    [Serializable]
-    public class SaveData
-    {
-        public ColorGroup[] colorGroups;
+        private static string SerializeColorGroupArray(ColorGroup[] cgs)
+        {   //serialize the ColorGroup array into a string where each ColorGroup is separated by a $ symbol
+            string s = "";
+            foreach (ColorGroup cg in cgs)
+            {
+                s += JsonUtility.ToJson(cg) + '$';
+            }
 
-        public int boatIndex;
-
-        public SaveData(ColorGroup[] cgs, int i)
+            return s;
+        }
+        private static ColorGroup[] DeserializeColorGroupArray(string serialized)
         {
-            colorGroups = cgs;
-            boatIndex = i;
+            string[] substrings = serialized.Split('$');    //split at the closing $
+
+            Array.Resize(ref substrings, substrings.Length - 1); //scrap the last one, since it's extra
+
+            ColorGroup[] cgs = new ColorGroup[substrings.Length];
+
+            //issue, this gets 6 strings instead of 5, also the first one is empty
+            for (int i = 0; i < substrings.Length; i++)
+            {
+                ColorGroup cg = JsonUtility.FromJson<ColorGroup>(substrings[i]);
+                cgs[i] = cg;
+            }
+
+            return cgs;
         }
     }
 }

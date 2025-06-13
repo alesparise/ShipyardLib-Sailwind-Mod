@@ -48,7 +48,7 @@ namespace ShipyardLib
         private Vector3[] standardPos = new Vector3[3]; //regular width ui
 
         #region Colors
-        private readonly Color[] grcColors = {
+        private Color[] grcColors = {
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
@@ -64,7 +64,7 @@ namespace ShipyardLib
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f)
         };
-        private readonly Color[] dcColors = {
+        private Color[] dcColors = {
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
@@ -80,7 +80,7 @@ namespace ShipyardLib
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f)
         };
-        private readonly Color[] faColors = {
+        private Color[] faColors = {
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f),
@@ -96,7 +96,7 @@ namespace ShipyardLib
             new Color (1f, 1f, 1f, 1f),
             new Color (1f, 1f, 1f, 1f)
         };
-        private readonly Color[] kColors = {
+        private Color[] kColors = {
             new Color (0f, 0f, 0f, 1f),
             new Color (1f, 1f, 1f, 1f),
             new Color (0f, 0f, 1f, 1f),
@@ -281,13 +281,13 @@ namespace ShipyardLib
                 panel.SetActive(false);
             }
         }
-
-        //public class ColorTarget
-        //{
-        //    public Material mat;
-        //    public GameObject[] objects;
-        //    public int index;
-        //}
+        public void SetColorArrays(Color[] aaColors, Color[] emColors, Color[] aeColors, Color[] laColor)
+        {   //set the colors used in the shipyard to recolor boat parts
+            grcColors = aaColors;
+            dcColors = emColors;
+            faColors = aeColors;
+            kColors = laColor;
+        }
 
         ///PLAN: the object with this script attached is the anchor for the modded UI.
         ///Sliders for mast and stays go into a specific parchments up top (I should try make this customizable for modders)
