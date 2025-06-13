@@ -31,6 +31,8 @@ namespace ShipyardLib
         [Tooltip("Extra category names")]
         public string[] categories;
 
+        [HideInInspector] public int boatIndex;
+
         public void Awake()
         {
             colorGroups = new ColorGroup[5];
@@ -48,6 +50,20 @@ namespace ShipyardLib
                 if (cg != null) cg.CacheDefault();
                 colorGroups[i] = cg;
             }
+
+            if (SaveLoader.customShipyards == null)
+            {
+                SaveLoader.customShipyards = new List<CustomShipyard>
+                {
+                    this
+                };
+            }
+            else
+            {
+                SaveLoader.customShipyards.Add(this);
+            }
+
+            boatIndex = GetComponent<SaveableObject>().sceneIndex;
         }
     }
     [Serializable]
@@ -56,20 +72,33 @@ namespace ShipyardLib
         [Tooltip("Name for the color group")]
         public string groupName;
         [Tooltip("All objects sharing this materials will be recolored")]
+        public Material material;
         public Renderer renderer;
         [Tooltip("All objects listed here will be recolored")]
         public GameObject[] objects;
-        
+        [Tooltip("CG Index")]
+        [HideInInspector] public int index = -1;
+
         [HideInInspector] public Color sharedDefault;
         [HideInInspector] public Color[] objectsDefault;
+        [HideInInspector] public Color currentColor;
 
+        public ColorGroup()
+        {
+            renderer = null;
+            objects = null;
+            groupName = "";
+            material = null;
+        }
         public ColorGroup(string s, Renderer r, GameObject[] o)
         {
             renderer = r;
             objects = o;
             groupName = s;
+            Debug.LogWarning("got here");
+            material = r?.sharedMaterial;
         }
-        
+
         public void CacheDefault()
         {
             if (renderer != null) sharedDefault = renderer.sharedMaterial.GetColor("_Color");

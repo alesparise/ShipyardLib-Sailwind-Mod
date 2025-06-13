@@ -35,7 +35,7 @@ namespace ShipyardLib
 
         [HideInInspector] public CustomShipyard customShipyard;
 
-        [HideInInspector] public ColorTarget target;
+        [HideInInspector] public ColorGroup target;
 
         public static CustomUI instance;
 
@@ -121,7 +121,7 @@ namespace ShipyardLib
             openedPanels = new List<GameObject>();
 
             colorizer = gameObject.AddComponent<Colorizer>();
-            target = new ColorTarget();
+            target = new ColorGroup();
 
             vanillaUI = new List<GameObject>();
             Transform baseUI = ShipyardUI.instance?.transform.Find("UI");
@@ -282,12 +282,13 @@ namespace ShipyardLib
             }
         }
 
-        public class ColorTarget
-        {
-            public Material mat;
-            public GameObject[] objects;
-            public int index;
-        }
+        //public class ColorTarget
+        //{
+        //    public Material mat;
+        //    public GameObject[] objects;
+        //    public int index;
+        //}
+
         ///PLAN: the object with this script attached is the anchor for the modded UI.
         ///Sliders for mast and stays go into a specific parchments up top (I should try make this customizable for modders)
         ///Stays scaling and mast moving happens in the SAIL panel, when you select the mast or stay it will allow you to move it, 

@@ -30,12 +30,12 @@ namespace ShipyardLib
         {
             if (selectedButton == gameObject)
             {   //reset color if clicked again and then do nothing
-                CustomUI.instance.target = new CustomUI.ColorTarget();
+                CustomUI.instance.target = new ColorGroup();
                 renderer.sharedMaterial = defaultMat;
                 selectedButton = null;
                 return;
             }
-            CustomUI.instance.target.mat = targetMaterial;
+            CustomUI.instance.target.material = targetMaterial;
             CustomUI.instance.target.objects = objects;
             CustomUI.instance.target.index = targetIndex;
             renderer.sharedMaterial = clickedMat;

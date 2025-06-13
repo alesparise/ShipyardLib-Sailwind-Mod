@@ -11,11 +11,11 @@ namespace ShipyardLib
 
         public override void OnActivate()
         {
-            CustomUI.ColorTarget target = CustomUI.instance.target;
+            ColorGroup target = CustomUI.instance.target;
             ColorGroup cg = CustomUI.instance.customShipyard.colorGroups[target.index];
 
             if (target == null) return;
-            if (target.mat != null) CustomUI.instance.colorizer.Colorize(cg.sharedDefault, target.mat);
+            if (target.material != null) CustomUI.instance.colorizer.Colorize(cg.sharedDefault, target.material);
             if (target.objects != null && target.objects.Length > 0)
             {
                 for (int i = 0; i < cg.objects.Length; i++)

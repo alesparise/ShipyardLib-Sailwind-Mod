@@ -33,6 +33,7 @@ namespace ShipyardLib
 
             //patching ShipyardExpansion
             //this is pretty janky, but it works without adding the reference to Shipyard Expansion!
+            #region SE patch
             string typeName = "ShipyardExpansion.ShipyardUIPatches";
 
             Assembly seAssembly;
@@ -53,12 +54,24 @@ namespace ShipyardLib
                 MethodInfo seP = AccessTools.Method(typeof(ShipyardLibPatches), "SEPatch");
                 harmony.Patch(seOG, new HarmonyMethod(seP));
             }
+            #endregion
+
+            //save mod data
+            MethodInfo saveOG = AccessTools.Method(typeof(SaveLoadManager), "SaveModData");
+            MethodInfo saveP = AccessTools.Method(typeof(SaveLoader), "SaveCustomShipyard");
+            harmony.Patch(saveOG, new HarmonyMethod(saveP));
+
+            //load mod data
+            MethodInfo loadOG = AccessTools.Method(typeof(SaveLoadManager), "LoadModData");
+            MethodInfo loadP = AccessTools.Method(typeof(SaveLoader), "LoadCustomShipyard");
+            harmony.Patch(loadOG, new HarmonyMethod(loadP));
         }
         public static void Setup() => ShipyardHelpers.Setup();
         public static void EnableCustomShipyard(bool state, Shipyard __instance)
         {   //runs the check to see if the modded ui is to be enabled
             CustomShipyard cs = __instance.GetCurrentBoat()?.GetComponent<CustomShipyard>();
-            if (state && cs == null) return;
+            if (!state) return; 
+            if (cs == null) return;
             Debug.LogWarning("Toggling moddedUI for " + cs.name);
             ShipyardHelpers.ToggleUI(state, cs);
         }

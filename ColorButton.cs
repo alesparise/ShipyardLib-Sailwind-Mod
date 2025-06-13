@@ -9,10 +9,11 @@ namespace ShipyardLib
         {
             Debug.LogWarning("Clicked color: " + color);
 
-            CustomUI.ColorTarget target = CustomUI.instance.target;
+            ColorGroup target = CustomUI.instance.target;
             if (target == null) return;
-            if (target.mat != null) CustomUI.instance.colorizer.Colorize(color, target.mat);
+            if (target.material != null) CustomUI.instance.colorizer.Colorize(color, target.material);
             if (target.objects != null && target.objects.Length > 0) CustomUI.instance.colorizer.Colorize(color, target.objects);
+            target.currentColor = color;
         }
 
         public void SetColor(Color c)
